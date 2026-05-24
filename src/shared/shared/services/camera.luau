@@ -12,7 +12,7 @@ local player_input = require(script.Parent.player_input)
 -- variables --
 local camera_control = {}
 
-local cam = true
+local cam = false
 
 local camera
 local root
