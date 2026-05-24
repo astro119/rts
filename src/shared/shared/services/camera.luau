@@ -86,7 +86,7 @@ function camera_control:start()
             cam_pitch -= mouse_delta.Y 
                         * CAM_SENSITIVITY 
                         * (camera.FieldOfView / DEFAULT_CAM_FOV)
-                        - root_kinematics.rot_rate.pitch * dt
+                        + root_kinematics.rot_rate.pitch * dt
             cam_yaw -= mouse_delta.X * CAM_SENSITIVITY * (camera.FieldOfView / DEFAULT_CAM_FOV)
                         - root_kinematics.rot_rate.yaw * dt
 

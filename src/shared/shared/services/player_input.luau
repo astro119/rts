@@ -34,7 +34,7 @@ function player_input:init()
 	RunService.RenderStepped:Connect(function(dt)
         local raw_mouse_delta = UserInputService:GetMouseDelta()
 		player_input.raw_mouse_delta = raw_mouse_delta
-		-- player_input.smooth_mouse_delta = mouse_low_pass:update_vec2(raw_mouse_delta, dt)
+		player_input.smooth_mouse_delta = mouse_low_pass:update_vec2(raw_mouse_delta, dt)
         
 		player_input.scroll_delta = 0
 
