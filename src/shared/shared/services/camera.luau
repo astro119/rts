@@ -5,6 +5,7 @@ local CollectionService = game:GetService("CollectionService")
 
 -- dependencies --
 local general = require(ReplicatedStorage.packages.general)
+local kinematics = require(ReplicatedStorage.packages.kinematics)
 local player_input = require(script.Parent.player_input)
 
 -- types --
@@ -12,7 +13,7 @@ local player_input = require(script.Parent.player_input)
 -- variables --
 local camera_control = {}
 
-local cam = false
+local cam = true
 
 local camera
 local root
@@ -47,6 +48,8 @@ function camera_control:init()
 end
 
 function camera_control:start()
+
+    local root_kinematics = kinematics.new(root)
     
     local cam_pitch = 0
     local cam_yaw = 0
@@ -60,14 +63,19 @@ function camera_control:start()
 
     RunService.RenderStepped:Connect(function(dt)
         if cam then
+            root_kinematics:update(dt)
+
+
             -- PLAYER INPUT
             local mouse_delta = Vector2.zero
 
             -- decide whether to use raw or smoothed mouse delta values
             if USE_SMOOTH_MOUSE_DELTA then
-                mouse_delta = Vector2.new(player_input.smooth_mouse_delta.X, player_input.smooth_mouse_delta.Y)
+                mouse_delta = Vector2.new(player_input.smooth_mouse_delta.X, 
+                                            player_input.smooth_mouse_delta.Y)
             else
-                mouse_delta = Vector2.new(player_input.raw_mouse_delta.X, player_input.raw_mouse_delta.Y)
+                mouse_delta = Vector2.new(player_input.raw_mouse_delta.X, 
+                                            player_input.raw_mouse_delta.Y)
             end
 
             -- change fov
@@ -75,10 +83,12 @@ function camera_control:start()
             
             -- doesn't need to be multiplied by dt since mouse_delta is already taken
             -- every renderstepped, at least i think this logic makes sense
-            cam_pitch -= mouse_delta.Y * CAM_SENSITIVITY * (camera.FieldOfView / DEFAULT_CAM_FOV)
+            cam_pitch -= mouse_delta.Y 
+                        * CAM_SENSITIVITY 
+                        * (camera.FieldOfView / DEFAULT_CAM_FOV)
+                        - root_kinematics.rot_rate.pitch * dt
             cam_yaw -= mouse_delta.X * CAM_SENSITIVITY * (camera.FieldOfView / DEFAULT_CAM_FOV)
-            -- NEED TO DO THIS,
-            -- make cam_pitch and cam_yaw 
+                        - root_kinematics.rot_rate.yaw * dt
 
             -- copy position of camera to the platform
             -- rotate camera based on mouse input

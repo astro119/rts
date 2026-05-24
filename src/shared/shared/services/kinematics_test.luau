@@ -18,21 +18,19 @@ local root
 -- private functions --
 
 -- public functions --
-function kinematics_test:init() 
+function kinematics_test:init2() 
     root = workspace:WaitForChild("kinematics_testing"):WaitForChild("Axes"):WaitForChild("root")
 end
 
-function kinematics_test:start() 
+function kinematics_test:start2() 
 
     local root_kinematics = kinematics.new(root)
 
     RunService.Heartbeat:Connect(function(dt)
         root_kinematics:update(dt)
-        print(general.round(root_kinematics.rot_rate.pitch, 2),
-                general.round(root_kinematics.rot_rate.yaw, 2),
-                general.round(root_kinematics.rot_rate.roll, 2))
-        -- local ang_vel = root.AssemblyAngularVelocity
-        -- ang_vel 
+        -- print(general.round(root_kinematics.rot_rate.pitch, 2),
+        --         general.round(root_kinematics.rot_rate.yaw, 2),
+        --         general.round(root_kinematics.rot_rate.roll, 2))
     end)
 end
 

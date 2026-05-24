@@ -18,16 +18,14 @@ function kinematics.new(root)
 		object = root,
 		rotation = rot,
 
-		last_cf = root.CFrame,
-
 		rot_rate = {
 			pitch = 0,
 			yaw = 0,
 			roll= 0,
 		},
         
-        previousLookVector = nil,
-        previousUpVector = nil
+        prev_look_vec = nil,
+        prev_up_vec = nil
 
 	}, kinematics)
 end
@@ -43,33 +41,21 @@ function kinematics:update(dt)
 	self.rotation.roll = roll
 
     
-    ---------------------
-	local root_direction = self.object.CFrame.LookVector
-	local UpVector = self.object.CFrame.UpVector
+    -- rotation rate
+	local look_vec = self.object.CFrame.LookVector
+	local up_vec = self.object.CFrame.UpVector
 
+	if self.prev_look_vec ~= nil and self.prev_up_vec ~= nil then
+		self.prev_look_vec = self.object.CFrame:VectorToObjectSpace(self.prev_look_vec)
+		self.prev_up_vec = self.object.CFrame:VectorToObjectSpace(self.prev_up_vec)
 
-	local pitch_rate, roll_rate, yaw_rate
-
-	if self.previousLookVector ~= nil and self.previousUpVector ~= nil then
-		self.previousLookVector = self.object.CFrame:VectorToObjectSpace(self.previousLookVector)
-		self.previousUpVector = self.object.CFrame:VectorToObjectSpace(self.previousUpVector)
-
-		pitch_rate = math.atan(self.previousLookVector.Y / self.previousLookVector.Z) / dt -- positive when up
-		roll_rate = -math.atan2(self.previousUpVector.X, self.previousUpVector.Y) / dt -- positive when roll right
-		yaw_rate = math.atan(self.previousLookVector.X / self.previousLookVector.Z) / dt -- positive when right
-
-		--print(previousLookVector)
-		--print(previousUpVector)
-		--print(pitchRate, rollRate, yawRate)
+		self.rot_rate.pitch = math.atan(self.prev_look_vec.Y / self.prev_look_vec.Z) / dt -- positive when up
+        self.rot_rate.yaw = math.atan(self.prev_look_vec.X / self.prev_look_vec.Z) / dt -- positive when right
+		self.rot_rate.roll = -math.atan2(self.prev_up_vec.X, self.prev_up_vec.Y) / dt -- positive when roll right
 	end
 
-	self.previousLookVector = root_direction
-	self.previousUpVector = UpVector
-    --------------------------------------------
-
-    self.rot_rate.pitch = pitch_rate
-    self.rot_rate.yaw = yaw_rate
-    self.rot_rate.roll = roll_rate
+	self.prev_look_vec = look_vec
+	self.prev_up_vec = up_vec
 
 
 end
