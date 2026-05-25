@@ -170,7 +170,7 @@ function trails:update(dt)
     end
     self.active_time += dt
     self.new_beam_interval += dt
-    print(self.active_time, self.new_beam_interval)
+    -- print(self.active_time, self.new_beam_interval)
 end
 
 return trails
