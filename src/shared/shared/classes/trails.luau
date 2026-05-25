@@ -1,6 +1,6 @@
 local TweenService = game:GetService("TweenService")
 
-local DISAPPEAR = 0.6
+local FADE_POINT = 0.5
 
 local parent
 
@@ -52,7 +52,7 @@ function trails.new(
         max_trail_width = max_trail_width,
         randomness = randomness * 10,
 
-        d_time = DISAPPEAR * lifetime,
+        d_time = FADE_POINT * lifetime,
 
         active_time = 0,
         atts = {a0},
@@ -120,7 +120,7 @@ function trails:update(dt)
         -- beam to max trail width
         tween_info = TweenInfo.new(
             self.d_time, -- time for tween to complete
-            Enum.EasingStyle.Sine,
+            Enum.EasingStyle.Linear,
             Enum.EasingDirection.Out, -- default direction is out
             0, -- repeat count (should not be repeating)
             false, -- move back to start after reaching goal?
