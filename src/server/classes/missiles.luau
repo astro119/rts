@@ -1,4 +1,5 @@
-local trails = require(script.Parent.trails)
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local trails = require(ReplicatedStorage.shared.classes.trails)
 
 local missile = {}
 missile.__index = missile
@@ -7,7 +8,7 @@ function missile.new(missile_model: Model)
 
     local root = missile_model:WaitForChild("root")
     local emitter = root:WaitForChild("emitter")
-    local trail = trails.new(emitter, 5, 1)
+    -- local trail = trails.new(emitter, 5, 1)
 
 	return setmetatable({
         model = missile_model,
@@ -25,7 +26,7 @@ function missile:update(dt)
 
         -- only just activated the missile
         if self.active_time == 0 then
-            self.trail = trails.new(self.emitter, 5, 1)
+            -- self.trail = trails.new(self.emitter, 5, 1)
             -- print("activating "..self.model.Name)
 
         -- missile after activation
@@ -33,7 +34,7 @@ function missile:update(dt)
             -- local ref4 = workspace:WaitForChild("ref4")
             -- ref4.Position = self.emitter.WorldPosition
 
-            self.trail:update(dt)
+            -- self.trail:update(dt)
             -- print("updating "..self.model.Name)
         end
         

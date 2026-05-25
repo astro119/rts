@@ -1,20 +1,18 @@
 local TweenService = game:GetService("TweenService")
 
-local INTERVAL = 0.75 -- measured in seconds, amount of time between each beam segment
+local RESOLUTION = 0.2 -- measured in seconds, amount of time between each beam segment
 
 local parent
-local fade_time = 2
 
 local trails = {}
 trails.__index = trails
 
-local function att_tween_properties()
-end
-
 function trails.new(
+    template: Beam,
     emitter: Attachment, 
+    max_trail_width: number,
     lifetime: number,
-    noise: number
+    randomness: number
 )
     -- this is the part that all the attachments and beams should go to
     if not parent then
@@ -37,8 +35,8 @@ function trails.new(
     -- position of all the attachments
     -- width0 and width1 of each of the beams
     local tween_info = TweenInfo.new(
-        fade_time, -- time for tween to complete
-        Enum.EasingStyle.Sine,
+        lifetime, -- time for tween to complete
+        Enum.EasingStyle.Cubic,
         Enum.EasingDirection.Out, -- default direction is out
         0, -- repeat count (should not be repeating)
         false, -- move back to start after reaching goal?
@@ -51,13 +49,20 @@ function trails.new(
     a0.Parent = parent
 
     return setmetatable({
+        template = template,
+
         host = host,
         emitter = emitter,
+
+        tween_info = tween_info,
+        max_trail_width = max_trail_width,
+        lifetime = lifetime,
+        randomness = randomness * 10,
 
         atts = {a0},
         beams = {},
 
-        new_beam_interval = INTERVAL
+        new_beam_interval = RESOLUTION
         -- doesnt start at 0 since, after the interval time, it should immediately create the starting
         -- beam with its corresponding attachment
     }, trails)
@@ -67,31 +72,48 @@ end
 function trails:update(dt)
     -- after each interval, create a new attachment and beam, and apply tween
     -- on both the new attachment and beam
-    if self.new_beam_interval > INTERVAL then
+    if self.new_beam_interval > RESOLUTION then
 
+        -- new attachment configuration
+        local init_pos = self.emitter.WorldPosition
         local new_att = Instance.new("Attachment")
-        new_att.Position = self.emitter.WorldPosition
+        new_att.Position = init_pos
         new_att.Parent = parent
 
-        -- replace beam later, trails.new() should be able to pass in a reference beam in the future
-        -- since missiles will have a detailed and proper configuration in the future in ReplicatedStorage
-        local beam = Instance.new("Beam")
+        local tween_att_properties = {
+            ["Position"] = Vector3.new(
+                init_pos.X + math.random(-self.randomness, self.randomness)/10,
+                init_pos.Y + math.random(-self.randomness, self.randomness)/10,
+                init_pos.Z + math.random(-self.randomness, self.randomness/10)
+            )
+        }
+        local tween_att = TweenService:Create(new_att, self.tween_info, tween_att_properties)
+        tween_att:Play()
+
+        -- new beam configuration
+        local beam = self.template:Clone()
         beam.Attachment0 = self.atts[#self.atts]
         beam.Attachment1 = new_att
         beam.Parent = parent
-        beam.FaceCamera = true
-        beam.Width0 = 0.1
-        beam.Width1 = 0.1
 
+        local tween_beam_properties = {
+            ["Width0"] = self.max_trail_width
+        }
+        local tween_beam = TweenService:Create(beam, self.tween_info, tween_beam_properties)
+        tween_beam:Play()
+
+        -- modify the tables and reset interval
         table.insert(self.atts, new_att)
         table.insert(self.beams, beam)
         self.new_beam_interval = 0
     else
-        local ref3 = workspace:WaitForChild("ref3")
-        ref3.Position = self.emitter.WorldPosition
+        -- update attachment positions
         self.atts[#self.atts].Position = self.emitter.WorldPosition
-        print((self.atts[#self.atts].Position - self.emitter.WorldPosition).Magnitude,
-        self.atts[#self.atts].Position, self.emitter.WorldPosition)
+
+        -- update beam widths
+        for i = 1, #self.beams - 1 do
+            self.beams[i].Width1 = self.beams[i + 1].Width0
+        end
     end
     self.new_beam_interval += dt
 end
