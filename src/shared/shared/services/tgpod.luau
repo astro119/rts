@@ -11,9 +11,9 @@ local player_input = require(script.Parent.player_input)
 -- types --
 
 -- variables --
-local camera_control = {}
+local tgpod = {}
 
-local cam = true
+local cam = false
 
 local camera
 local root
@@ -28,7 +28,7 @@ local USE_SMOOTH_MOUSE_DELTA = false
 -- private functions --
 
 -- public functions --
-function camera_control:init()
+function tgpod:init()
 	camera = workspace.CurrentCamera
     if cam then
         camera.CameraType = Enum.CameraType.Scriptable
@@ -42,12 +42,13 @@ function camera_control:init()
     ray_params.FilterDescendantsInstances = CollectionService:GetTagged("terrain")
 
     self.test_part = workspace:WaitForChild("ref")
-    self.test_part2 = workspace:WaitForChild("ref2")
     self.test_part.Transparency = 1
+    
+    self.test_part2 = workspace:WaitForChild("ref2")
     self.test_part2.Transparency = 1
 end
 
-function camera_control:start()
+function tgpod:start()
 
     local root_kinematics = kinematics.new(root)
     
@@ -164,4 +165,4 @@ function camera_control:start()
 end
 
 -- main --
-return camera_control
+return tgpod
