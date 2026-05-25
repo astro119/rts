@@ -33,7 +33,7 @@ function missile:init()
     beam = cfg:WaitForChild("trail"):WaitForChild("beam")
     root = msl:WaitForChild("root")
 
-    trail = trails.new(beam, root:WaitForChild("emitter"), 5, 10, 0.6)
+    trail = trails.new(beam, root:WaitForChild("emitter"), 30, 25, 10, 5, 0.5)
 
 
     cfg:Destroy()
