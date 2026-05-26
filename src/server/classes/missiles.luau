@@ -1,36 +1,76 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local remote_events = ReplicatedStorage.remote_events
+
+local trail_event = remote_events.trail
 local trails = require(ReplicatedStorage.shared.classes.trails)
+
 local apn = require(ReplicatedStorage.packages.pro_nav.aug_pro_nav)
+local welds = require(ReplicatedStorage.packages.welds)
+local anchor = require(ReplicatedStorage.packages.anchor)
 
 local missile = {}
 missile.__index = missile
 
-function missile.new(missile_model: Model)
+function missile.new(missile_model: Model, parent)
 
-    local root = missile_model:WaitForChild("root")
-    local emitter = root:WaitForChild("emitter")
+    local msl = missile_model:Clone()
+    msl.Parent = parent
+
+    local cfg = msl:WaitForChild("cfg")
+    local effects = cfg:WaitForChild("effects")
+
+    local root = msl:WaitForChild("root")
     local cog = root:WaitForChild("cog")
-
     local att0 = root:WaitForChild("att0")
-    
+
     local ang_vel = Instance.new("AngularVelocity")
     ang_vel.Attachment0 = cog
+    ang_vel.RelativeTo = Enum.ActuatorRelativeTo.Attachment0
     ang_vel.MaxTorque = 1000
     ang_vel.Parent = root
+    ang_vel.Enabled = false
 
-    -- testing
-    ang_vel.AngularVelocity = Vector3.new(0.05, 0.1, 0)
 
+    -- not sure if ill actually use linear velocity for final movement
+    local lin_vel = Instance.new("LinearVelocity")
+    lin_vel.Attachment0 = cog
+    lin_vel.RelativeTo = Enum.ActuatorRelativeTo.Attachment0
+    lin_vel.Parent = root
+    lin_vel.Enabled = false
+  
+    -----------
+    -- local trail
+    -- if effects then
+    --     local beam = effects:WaitForChild("beam")
+
+    --     local emitter = root:WaitForChild("emitter")
+
+    --     local trail_cfg = effects:WaitForChild("trail_cfg")
+    --     local lifetime = trail_cfg:GetAttribute("lifetime")
+    --     local time_to_max_width = trail_cfg:GetAttribute("time_to_max_width")
+    --     local max_trail_width = trail_cfg:GetAttribute("max_trail_width")
+    --     local randomness = trail_cfg:GetAttribute("randomness")
+    --     local resolution = trail_cfg:GetAttribute("resolution")
+
+    --     trail = trails.new(beam, emitter, lifetime, time_to_max_width, max_trail_width, randomness, resolution)
+    -- end
+    -------------
+
+
+    welds.weld_descendants(root)
+    anchor.unanchor_descendants(root)
 
 	return setmetatable({
         model = missile_model,
         root = root,
-        emitter = emitter,
-        trail = nil,
-
+        
+        att = att0,
         cog = cog,
         ang_vel = ang_vel,
+        lin_vel = lin_vel,
+
+        trail = trail,
 
         mode = nil,
         active = false,
@@ -60,7 +100,16 @@ function missile:update(dt)
 end
 
 function missile:activate()
-    self.active = true
+    if not self.active then
+        self.lin_vel.VectorVelocity = Vector3.new(0, 0, -20)
+
+        trail_event:FireAllClients()
+
+        self.ang_vel.Enabled = true
+        self.lin_vel.Enabled = true
+        self.active = true
+        print("activating missile")
+    end
 end
 
 return missile

@@ -16,9 +16,6 @@ local anchor = require(ReplicatedStorage.packages.anchor)
 local missile_test = {}
 
 local msl
-local root
-
-local missile_behv
 
 local trail_event
 
@@ -30,30 +27,22 @@ local trail_event
 function missile_test:init() 
 
     -- create remote event
-    trail_event = Instance.new("RemoteEvent")
-    trail_event.Name = "trail_event"
-    trail_event.Parent = ReplicatedStorage.RemoteEvents
+    -- trail_event = Instance.new("RemoteEvent")
+    -- trail_event.Name = "trail_event"
+    -- trail_event.Parent = ReplicatedStorage.RemoteEvents
 
 
-    msl = cfgs.missile:Clone()
-    msl.Parent = workspace
-    while not msl.PrimaryPart do
-        msl:GetPropertyChangedSignal("PrimaryPart"):Wait()
-    end
+    msl = missiles.new(cfgs.missile:Clone(), workspace)
+    msl:activate()
 
-    root = msl.PrimaryPart
-
-    welds.weld_descendants(root)
-    anchor.unanchor_descendants(root)
-
-    missile_behv = missiles.new(msl)
-    missile_behv:activate()
-
+    -- testing
+    msl.lin_vel.VectorVelocity = Vector3.new(0, 0, -40)
+    msl.ang_vel.AngularVelocity = Vector3.new(0.05, 0.1, 0)
 end
 
 function missile_test:start()
     RunService.Heartbeat:Connect(function(dt)
-        missile_behv:update(dt)
+        msl:update(dt)
     end)
 end
 
