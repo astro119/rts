@@ -100,7 +100,7 @@ function trails:update(dt)
             -- attachment to max randomness position
             local tween_info = TweenInfo.new(
                 self.lifetime, -- time for tween to complete
-                Enum.EasingStyle.Sine,
+                Enum.EasingStyle.Linear,
                 Enum.EasingDirection.Out, -- default direction is out
                 0, -- repeat count (should not be repeating)
                 false, -- move back to start after reaching goal?
@@ -151,7 +151,7 @@ function trails:update(dt)
 
                     -- beam to 0 trail width 
                     local tween_info = TweenInfo.new(
-                        self.lifetime - self.d_time, -- time for tween to complete
+                        (self.lifetime - self.d_time) * 0.9, -- time for tween to complete
                         Enum.EasingStyle.Exponential,
                         Enum.EasingDirection.Out, -- default direction is out
                         0, -- repeat count (should not be repeating)

@@ -1,14 +1,17 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local HttpService = game:GetService("HttpService")
 
+local packages = ReplicatedStorage.packages
+
 local remote_service = require(ReplicatedStorage.shared.services.remote_service)
 local msl_data = require(ReplicatedStorage.data.msl_data)
 
 local trail_to_client = remote_service.get("trail_to_client")
 
-local apn = require(ReplicatedStorage.packages.pro_nav.aug_pro_nav)
-local welds = require(ReplicatedStorage.packages.welds)
-local anchor = require(ReplicatedStorage.packages.anchor)
+local pid = require(packages.pid)
+local apn = require(packages.pro_nav.aug_pro_nav)
+local welds = require(packages.welds)
+local anchor = require(packages.anchor)
 
 local missile = {}
 missile.__index = missile
@@ -17,33 +20,13 @@ function missile.new(missile_model: Model, parent)
 
     local model = missile_model:Clone()
     model.Parent = parent
+    local root = model:WaitForChild("root")
 
     local id = HttpService:GenerateGUID(false)
     model:SetAttribute("id", id)
     
     local cfg = model:WaitForChild("cfg")
     local effects = cfg:WaitForChild("effects")
-
-    local root = model:WaitForChild("root")
-    local cog = root:WaitForChild("cog")
-    local att0 = root:WaitForChild("att0")
-
-    local ang_vel = Instance.new("AngularVelocity")
-    ang_vel.Attachment0 = cog
-    ang_vel.RelativeTo = Enum.ActuatorRelativeTo.Attachment0
-    ang_vel.MaxTorque = 1000
-    ang_vel.Parent = root
-    ang_vel.Enabled = false
-
-
-    -- not sure if ill actually use linear velocity for final movement
-    local lin_vel = Instance.new("LinearVelocity")
-    lin_vel.Attachment0 = cog
-    lin_vel.RelativeTo = Enum.ActuatorRelativeTo.Attachment0
-    lin_vel.Parent = root
-    lin_vel.Enabled = false
-  
-    -----------
     local trail_cfg
     if effects then
         local trail_cfg_temp = effects:WaitForChild("trail_cfg")
@@ -57,7 +40,32 @@ function missile.new(missile_model: Model, parent)
             resolution = trail_cfg_temp:GetAttribute("resolution")
         }
     end
-    -------------
+    local guidance = cfg:WaitForChild("guidance")
+    if guidance:GetAttribute("type") == "apn" then
+        -- apn.new()
+    end
+
+
+    local cog = root:WaitForChild("cog")
+    local att0 = root:WaitForChild("att0")
+
+    local ang_vel = Instance.new("AngularVelocity")
+    ang_vel.Attachment0 = cog
+    ang_vel.RelativeTo = Enum.ActuatorRelativeTo.Attachment0
+    ang_vel.MaxTorque = 1000
+    ang_vel.Parent = root
+    ang_vel.Enabled = false
+
+    local guidance
+
+    -- not sure if ill actually use linear velocity for final movement
+    local lin_vel = Instance.new("LinearVelocity")
+    lin_vel.Attachment0 = cog
+    lin_vel.RelativeTo = Enum.ActuatorRelativeTo.Attachment0
+    lin_vel.Parent = root
+    lin_vel.Enabled = false
+  
+
 
 
     welds.weld_descendants(root)
@@ -74,8 +82,10 @@ function missile.new(missile_model: Model, parent)
         ang_vel = ang_vel,
         lin_vel = lin_vel,
 
+        guidance = guidance,
         trail_cfg = trail_cfg,
 
+        target = nil,
         mode = nil,
         active = false,
         active_time = 0
@@ -87,16 +97,10 @@ function missile:update(dt)
 
         -- only just activated the missile
         if self.active_time == 0 then
-            -- self.trail = trails.new(self.emitter, 5, 1)
-            -- print("activating "..self.model.Name)
 
         -- missile after activation
         else
-            -- local ref4 = workspace:WaitForChild("ref4")
-            -- ref4.Position = self.emitter.WorldPosition
-
-            -- self.trail:update(dt)
-            -- print("updating "..self.model.Name)
+            
         end
         
         self.active_time += dt

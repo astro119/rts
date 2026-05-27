@@ -25,11 +25,11 @@ function remote_service.get(name)
 			
 			remote_service.events[name] = new_remote_event
 
-			print("remote event "..name.." does not exist, creating")
+			print("REMOTE_SERVICE: Generating RemoteEvent \""..name.."\"")
 			return new_remote_event
 		-- get remote event if it does exist
 		else
-			print("remote event "..name.." already exists")
+			-- print("remote event "..name.." already exists")
 			return remote_service.events[name]
 		end
 	-- client will simply have to wait until the remote event is created

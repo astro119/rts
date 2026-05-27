@@ -27,8 +27,8 @@ end
 function missile_test:start()
     msl = missiles.new(cfgs.missile:Clone(), workspace)
     anchor.anchor_descendants(msl.root)
-    task.wait(5)
-    print("OK ACTIVATE THE TEST MISSILE")
+    task.wait(2)
+    
     msl:activate()
     anchor.unanchor_descendants(msl.root)
     -- testing
