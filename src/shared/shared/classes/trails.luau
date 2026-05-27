@@ -67,108 +67,110 @@ function trails.new(
 end
 
 function trails:update(dt)
-    -- after each interval, create a new attachment and beam, and apply tween
-    -- on both the new attachment and beam
-    if self.new_beam_interval > self.resolution then
-        local init_pos = self.emitter.WorldPosition
-        local new_att
-        local beam
-        -- create new beams and attachments
-        if self.active_time < self.lifetime then
-            new_att = Instance.new("Attachment")
-            new_att.Parent = parent
-            beam = self.template:Clone()
-        beam.Parent = parent
-        -- reuse old beams and attachments that are past their lifetime
-        else
-            new_att = self.atts[1]
-            beam = self.beams[1]
-            beam.Width0 = self.template.Width0
-            beam.Width1 = self.template.Width1
-            table.remove(self.atts, 1)
-            table.remove(self.beams, 1)
-            table.remove(self.beam_time, 1)
-            table.remove(self.beam_fading, 1)
-        end
-
-        new_att.Position = init_pos
-        beam.Attachment0 = self.atts[#self.atts]
-        beam.Attachment1 = new_att
-
-        -- attachment to max randomness position
-        local tween_info = TweenInfo.new(
-            self.lifetime, -- time for tween to complete
-            Enum.EasingStyle.Sine,
-            Enum.EasingDirection.Out, -- default direction is out
-            0, -- repeat count (should not be repeating)
-            false, -- move back to start after reaching goal?
-            0 -- delay before tweening, i dont even really know when this would ever be useful
-        )
-
-        local tween_att_properties = {
-            ["Position"] = Vector3.new(
-                init_pos.X + math.random(-self.randomness, self.randomness)/10,
-                init_pos.Y + math.random(-self.randomness, self.randomness)/10,
-                init_pos.Z + math.random(-self.randomness, self.randomness)/10
-            )
-        }
-        local tween_att = TweenService:Create(new_att, tween_info, tween_att_properties)
-        tween_att:Play()
-
-        -- beam to max trail width
-        tween_info = TweenInfo.new(
-            self.d_time, -- time for tween to complete
-            Enum.EasingStyle.Linear,
-            Enum.EasingDirection.Out, -- default direction is out
-            0, -- repeat count (should not be repeating)
-            false, -- move back to start after reaching goal?
-            0 -- delay before tweening, i dont even really know when this would ever be useful
-        )
-
-        local tween_beam_properties = {
-            ["Width0"] = self.max_trail_width
-        }
-        local tween_beam = TweenService:Create(beam, tween_info, tween_beam_properties)
-        tween_beam:Play()
-
-
-        -- modify the tables and reset interval
-        table.insert(self.atts, new_att)
-        table.insert(self.beams, beam)
-        table.insert(self.beam_time, 0)
-        table.insert(self.beam_fading, false)
-        self.new_beam_interval = 0
-    else
-        -- update attachment positions
-        self.atts[#self.atts].Position = self.emitter.WorldPosition
-
-        -- update beam widths
-        for i = 1, #self.beams - 1 do
-
-            if self.beam_time[i] > self.d_time and not self.beam_fading[i] then
-
-                -- beam to 0 trail width 
-                local tween_info = TweenInfo.new(
-                    self.lifetime - self.d_time, -- time for tween to complete
-                    Enum.EasingStyle.Exponential,
-                    Enum.EasingDirection.Out, -- default direction is out
-                    0, -- repeat count (should not be repeating)
-                    false, -- move back to start after reaching goal?
-                    0 -- delay before tweening, i dont even really know when this would ever be useful
-                )
-                local tween_beam_properties = {
-                    ["Width0"] = 0
-                }
-                local tween_beam = TweenService:Create(self.beams[i], tween_info, tween_beam_properties)
-                tween_beam:Play()
+    -- only update if the emitter is visible and replicated to the client
+    if self.emitter then
+        -- after each interval, create a new attachment and beam, and apply tween
+        -- on both the new attachment and beam
+        if self.new_beam_interval > self.resolution then
+            local init_pos = self.emitter.WorldPosition
+            local new_att
+            local beam
+            -- create new beams and attachments
+            if self.active_time < self.lifetime then
+                new_att = Instance.new("Attachment")
+                new_att.Parent = parent
+                beam = self.template:Clone()
+            beam.Parent = parent
+            -- reuse old beams and attachments that are past their lifetime
+            else
+                new_att = self.atts[1]
+                beam = self.beams[1]
+                beam.Width0 = self.template.Width0
+                beam.Width1 = self.template.Width1
+                table.remove(self.atts, 1)
+                table.remove(self.beams, 1)
+                table.remove(self.beam_time, 1)
+                table.remove(self.beam_fading, 1)
             end
-            self.beams[i].Width1 = self.beams[i + 1].Width0
-            self.beam_time[i] += dt
+
+            new_att.Position = init_pos
+            beam.Attachment0 = self.atts[#self.atts]
+            beam.Attachment1 = new_att
+
+            -- attachment to max randomness position
+            local tween_info = TweenInfo.new(
+                self.lifetime, -- time for tween to complete
+                Enum.EasingStyle.Sine,
+                Enum.EasingDirection.Out, -- default direction is out
+                0, -- repeat count (should not be repeating)
+                false, -- move back to start after reaching goal?
+                0 -- delay before tweening, i dont even really know when this would ever be useful
+            )
+
+            local tween_att_properties = {
+                ["Position"] = Vector3.new(
+                    init_pos.X + math.random(-self.randomness, self.randomness)/10,
+                    init_pos.Y + math.random(-self.randomness, self.randomness)/10,
+                    init_pos.Z + math.random(-self.randomness, self.randomness)/10
+                )
+            }
+            local tween_att = TweenService:Create(new_att, tween_info, tween_att_properties)
+            tween_att:Play()
+
+            -- beam to max trail width
+            tween_info = TweenInfo.new(
+                self.d_time, -- time for tween to complete
+                Enum.EasingStyle.Linear,
+                Enum.EasingDirection.Out, -- default direction is out
+                0, -- repeat count (should not be repeating)
+                false, -- move back to start after reaching goal?
+                0 -- delay before tweening, i dont even really know when this would ever be useful
+            )
+
+            local tween_beam_properties = {
+                ["Width0"] = self.max_trail_width
+            }
+            local tween_beam = TweenService:Create(beam, tween_info, tween_beam_properties)
+            tween_beam:Play()
+
+
+            -- modify the tables and reset interval
+            table.insert(self.atts, new_att)
+            table.insert(self.beams, beam)
+            table.insert(self.beam_time, 0)
+            table.insert(self.beam_fading, false)
+            self.new_beam_interval = 0
+        else
+            -- update attachment positions
+            self.atts[#self.atts].Position = self.emitter.WorldPosition
+
+            -- update beam widths
+            for i = 1, #self.beams - 1 do
+
+                if self.beam_time[i] > self.d_time and not self.beam_fading[i] then
+
+                    -- beam to 0 trail width 
+                    local tween_info = TweenInfo.new(
+                        self.lifetime - self.d_time, -- time for tween to complete
+                        Enum.EasingStyle.Exponential,
+                        Enum.EasingDirection.Out, -- default direction is out
+                        0, -- repeat count (should not be repeating)
+                        false, -- move back to start after reaching goal?
+                        0 -- delay before tweening, i dont even really know when this would ever be useful
+                    )
+                    local tween_beam_properties = {
+                        ["Width0"] = 0
+                    }
+                    local tween_beam = TweenService:Create(self.beams[i], tween_info, tween_beam_properties)
+                    tween_beam:Play()
+                end
+                self.beams[i].Width1 = self.beams[i + 1].Width0
+                self.beam_time[i] += dt
+            end
         end
+        self.active_time += dt
+        self.new_beam_interval += dt
     end
-    self.active_time += dt
-    self.new_beam_interval += dt
-    -- print(self.active_time, self.new_beam_interval)
 end
 
 return trails

@@ -1,4 +1,5 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local HttpService = game:GetService("HttpService")
 
 local remote_service = require(ReplicatedStorage.shared.services.remote_service)
 local msl_data = require(ReplicatedStorage.data.msl_data)
@@ -14,13 +15,16 @@ missile.__index = missile
 
 function missile.new(missile_model: Model, parent)
 
-    local msl = missile_model:Clone()
-    msl.Parent = parent
+    local model = missile_model:Clone()
+    model.Parent = parent
 
-    local cfg = msl:WaitForChild("cfg")
+    local id = HttpService:GenerateGUID(false)
+    model:SetAttribute("id", id)
+    
+    local cfg = model:WaitForChild("cfg")
     local effects = cfg:WaitForChild("effects")
 
-    local root = msl:WaitForChild("root")
+    local root = model:WaitForChild("root")
     local cog = root:WaitForChild("cog")
     local att0 = root:WaitForChild("att0")
 
@@ -41,20 +45,11 @@ function missile.new(missile_model: Model, parent)
   
     -----------
     local trail_cfg
-    local emitter = root:WaitForChild("emitter")
-    print()
-    print("----------------")
-    for _, object in root:GetChildren() do
-        print(object.Name)
-    end
-    print("HELLO################")
-    print("EMITTER NAME IS "..emitter.Name)
-    print()
     if effects then
         local trail_cfg_temp = effects:WaitForChild("trail_cfg")
         trail_cfg = {
             beam = effects:WaitForChild("beam"),
-            emitter = emitter,
+            emitter = root:WaitForChild("emitter"),
             lifetime = trail_cfg_temp:GetAttribute("lifetime"),
             time_to_max_width = trail_cfg_temp:GetAttribute("time_to_max_width"),
             max_trail_width = trail_cfg_temp:GetAttribute("max_trail_width"),
@@ -69,7 +64,9 @@ function missile.new(missile_model: Model, parent)
     anchor.unanchor_descendants(root)
 
 	return setmetatable({
-        model = msl,
+        id = id,
+
+        model = model,
         root = root,
         
         att = att0,
@@ -108,18 +105,16 @@ end
 
 function missile:activate()
     if not self.active then
+        -- print("activating missile")
         self.lin_vel.VectorVelocity = Vector3.new(0, 0, -30)
 
         if self.trail_cfg then
-            print(self.trail_cfg)
-            local trail_cfg = self.trail_cfg
-            trail_to_client:FireAllClients(trail_cfg)
+            trail_to_client:FireAllClients(self.trail_cfg)
         end
 
         self.ang_vel.Enabled = true
         self.lin_vel.Enabled = true
         self.active = true
-        print("activating missile")
     end
 end
 

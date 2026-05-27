@@ -31,14 +31,7 @@ function trails_client:init()
     end)
 
     trail_event.OnClientEvent:Connect(function(new_trail_data)
-        if new_trail_data.emitter then
-            print("worked")
-        else
-            print("didnt work doesnt exist wa wa aw")
-        end
-        print(new_trail_data)
         local new_trail = trails.new(new_trail_data)
-
         table.insert(trails_table, new_trail)
     end) 
 end
