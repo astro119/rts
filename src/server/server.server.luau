@@ -5,6 +5,7 @@ for _, service in ipairs(services:GetChildren()) do
 
 	if typeof(module.init) == "function" then
 		module:init()
+		print("SERVER initialised "..service.Name)
 	end
 end
 
@@ -13,5 +14,6 @@ for _, service in ipairs(services:GetChildren()) do
 
 	if typeof(module.start) == "function" then
 		module:start()
+		print("SERVER started "..service.Name)
 	end
 end

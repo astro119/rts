@@ -8,14 +8,16 @@ local trails = {}
 trails.__index = trails
 
 function trails.new(
-    template: Beam,
-    emitter: Attachment, 
-    lifetime: number,
-    time_to_max_width: number,
-    max_trail_width: number,
-    randomness: number,
-    resolution: number
+    trail_cfg
 )
+    local template = trail_cfg.beam
+    local emitter = trail_cfg.emitter
+    local lifetime = trail_cfg.lifetime
+    local time_to_max_width = trail_cfg.time_to_max_width
+    local max_trail_width = trail_cfg.max_trail_width
+    local randomness = trail_cfg.randomness
+    local resolution = trail_cfg.resolution
+
     -- this is the part that all the attachments and beams should go to
     if not parent then
         parent = Instance.new("Part")
@@ -31,8 +33,6 @@ function trails.new(
         parent.Parent = workspace
     end
 
-    local host = emitter.Parent -- trail takes new positions from this object
-
     -- things to tween:
     -- position of all the attachments
     -- width0 and width1 of each of the beams
@@ -43,8 +43,6 @@ function trails.new(
 
     return setmetatable({
         template = template,
-
-        host = host,
         emitter = emitter,
 
         lifetime = lifetime,
@@ -111,7 +109,7 @@ function trails:update(dt)
             ["Position"] = Vector3.new(
                 init_pos.X + math.random(-self.randomness, self.randomness)/10,
                 init_pos.Y + math.random(-self.randomness, self.randomness)/10,
-                init_pos.Z + math.random(-self.randomness, self.randomness/10)
+                init_pos.Z + math.random(-self.randomness, self.randomness)/10
             )
         }
         local tween_att = TweenService:Create(new_att, tween_info, tween_att_properties)

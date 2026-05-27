@@ -4,9 +4,8 @@ local RunService = game:GetService("RunService")
 local CollectionService = game:GetService("CollectionService")
 
 -- dependencies --
-local general = require(ReplicatedStorage.packages.general)
 local kinematics = require(ReplicatedStorage.packages.kinematics)
-local player_input = require(script.Parent.player_input)
+local player_input = require(script.Parent.player_input_client)
 
 -- types --
 

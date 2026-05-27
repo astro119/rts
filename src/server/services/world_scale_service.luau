@@ -28,7 +28,7 @@ function world_scale:init()
 	game.Workspace.Gravity *= mts
 	game.Workspace.AirDensity *= mts
 
-	print_basic_world_params()
+	-- print_basic_world_params()
 end
 
 function world_scale:start()

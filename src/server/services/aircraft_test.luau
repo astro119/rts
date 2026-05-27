@@ -35,10 +35,13 @@ function aircraft_test:init()
 
     anchor.anchor_descendants(arcrft.root)
     local msl = cfgs.missile
-    for _, v in ipairs({1,4}) do
+    for _, v in ipairs({1,2,3,4}) do
         arcrft:attach_to_hardpoint(v, msl)
     end
     anchor.unanchor_descendants(arcrft.root)
+
+
+    
 end
 
 function aircraft_test:start()
@@ -48,6 +51,15 @@ function aircraft_test:start()
         t += dt
         if t > 5 then
             arcrft:deploy_weapon(1)
+        end
+        if t > 6 then
+            arcrft:deploy_weapon(4)
+        end
+        if t > 7 then
+            arcrft:deploy_weapon(2)
+        end
+        if t > 8 then
+            arcrft:deploy_weapon(3)
         end
     end)
 end

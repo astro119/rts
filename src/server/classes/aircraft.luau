@@ -86,7 +86,7 @@ function aircraft:attach_to_hardpoint(station: number, weapon_model: Model)
     -- attach weapon, with correct offset
     weapon.root.CFrame = hardpoint.WorldCFrame * weapon.att.CFrame:Inverse()
     welds.weld(weapon.root, self.root)
-    table.insert(self.weapons, station, weapon)
+    self.weapons[station] = weapon
     -- weapon.lin_vel.VectorVelocity = Vector3.new(0,0,-0.5)
 end
 
@@ -98,7 +98,7 @@ function aircraft:deploy_weapon(station: number)
         -- temporary maybe??
         local weld_attach = weapon.root:WaitForChild("WeldConstraint")
         weld_attach:Destroy()
-        table.remove(self.weapons, station)
+        self.weapons[station] = nil
     end
 end
 

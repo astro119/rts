@@ -2,16 +2,19 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+local classes = ReplicatedStorage.shared.classes
+local services = ReplicatedStorage.shared.services
+
 -- dependencies --
-local trails = require(ReplicatedStorage.shared.classes.trails)
+local remote_service = require(services.remote_service)
+local trails = require(classes.trails)
 
 -- types --
 
 -- variables --
 local trails_client = {}
 
-local remote_events = ReplicatedStorage.remote_events
-local trail_event = remote_events.trail
+local trail_event = remote_service.get("trail_to_client")
 
 local trails_table = {}
 
@@ -20,20 +23,27 @@ local trails_table = {}
 -- private functions --
 
 -- public functions --
-function trails_client:init()     
-end
-
--- local axes2_root = workspace:WaitForChild("Axes2"):WaitForChild("root")
-function trails_client:start()
+function trails_client:init()    
     RunService.RenderStepped:Connect(function(dt)
         for _, trail in ipairs(trails_table) do
             trail:update(dt)
         end
     end)
 
-    trail_event.OnClientEvent:Connect(function()
+    trail_event.OnClientEvent:Connect(function(new_trail_data)
+        if new_trail_data.emitter then
+            print("worked")
+        else
+            print("didnt work doesnt exist wa wa aw")
+        end
+        print(new_trail_data)
+        local new_trail = trails.new(new_trail_data)
+
         table.insert(trails_table, new_trail)
-    end)
+    end) 
+end
+
+function trails_client:start()
 end
 
 -- main --
