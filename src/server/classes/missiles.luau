@@ -9,6 +9,7 @@ local remote_service = require(ReplicatedStorage.shared.services.remote_service)
 local msl_data = require(ServerScriptService.data.msl_data)
 
 local trail_to_client = remote_service.get("trail_to_client")
+local trail_stop = remote_service.get("trail_stop")
 
 local pid = require(packages.pid)
 local apn = require(packages.pro_nav.aug_pro_nav)
@@ -128,7 +129,7 @@ function missile:activate()
 
         if self.trail_cfg then
             -- trail_to_client:FireAllClients(self.trail_id, self.trail_cfg)
-            trail_to_client:FireAllClients(self.trail_cfg)
+            trail_to_client:FireAllClients(self.trail_id, self.trail_cfg)
         end
 
         self.ang_vel.Enabled = true
@@ -199,6 +200,7 @@ function missile:update(dt)
 end
 
 function missile:impact()
+    trail_stop:FireAllClients(self.trail_id)
     self:remove_from_data(msl_data)
     self.model:Destroy()
 end

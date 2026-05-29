@@ -13,6 +13,7 @@ local player_input = require(script.Parent.player_input_client)
 local tgpod = {}
 
 local cam = false
+-- local cam = true
 
 local camera
 local root

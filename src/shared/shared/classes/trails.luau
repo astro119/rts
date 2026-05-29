@@ -22,6 +22,7 @@ function trails.new(
     if not parent then
         parent = Instance.new("Part")
         
+        parent.Name = "client_trails"
         parent.Transparency = 1
         parent.Position = Vector3.new(0, 0, 0)
         parent.CanCollide = false
@@ -52,6 +53,8 @@ function trails.new(
 
         d_time = FADE_POINT * lifetime,
 
+        active = true,
+        last_active = true,
         active_time = 0,
         atts = {a0},
         beams = {},
@@ -68,11 +71,14 @@ end
 
 function trails:update(dt)
     -- only update if the emitter is visible and replicated to the client
-    if self.emitter.Parent then
-        -- after each interval, create a new attachment and beam, and apply tween
-        -- on both the new attachment and beam
-        -- this condition only runs every interval (i.e., essentially "once")
-        if self.new_beam_interval > self.resolution then
+    
+
+    -- after each interval, create a new attachment and beam, and apply tween
+    -- on both the new attachment and beam
+    -- this condition only runs every interval (i.e., essentially "once")
+    if self.new_beam_interval > self.resolution then
+        if self.active then
+            
             local init_pos = self.emitter.WorldPosition
             local new_att
             local beam
@@ -93,6 +99,7 @@ function trails:update(dt)
                 table.remove(self.beam_time, 1)
                 table.remove(self.beam_fading, 1)
             end
+
 
             new_att.Position = init_pos
             beam.Attachment0 = self.atts[#self.atts]
@@ -140,50 +147,90 @@ function trails:update(dt)
             table.insert(self.beams, beam)
             table.insert(self.beam_time, 0)
             table.insert(self.beam_fading, false)
-            self.new_beam_interval = 0
-
-        -- continuous updating loop
-        else
-            -- update attachment positions
-            self.atts[#self.atts].Position = self.emitter.WorldPosition
-
-            
-
+            -- self.new_beam_interval = 0
         end
-        
+        self.new_beam_interval = 0
 
-            -- update beam widths
-            for i = 1, #self.beams - 1 do
+    -- continuous updating loop
+    else
+        -- update attachment position closest to emitter
+        if self.active then
+            self.atts[#self.atts].Position = self.emitter.WorldPosition
+        -- final beam, must manually do this
+        else
+            if self.beam_time[#self.beams] > self.d_time then
+                local tween_info = TweenInfo.new(
+                    (self.lifetime - self.d_time) * 0.9, -- time for tween to complete
+                    Enum.EasingStyle.Sine,
+                    Enum.EasingDirection.Out, -- default direction is out
+                    0, -- repeat count (should not be repeating)
+                    false, -- move back to start after reaching goal?
+                    0 -- delay before tweening, i dont even really know when this would ever be useful
+                )
+                local tween_beam_properties = {
+                    ["Width0"] = 0,
+                    ["Width1"] = 0
+                }
+                local tween_beam = TweenService:Create(self.beams[#self.beams], tween_info, tween_beam_properties)
+                tween_beam:Play()
+            end
+        end
 
-                -- beam to 0 trail width, only happens once at the time the beam needs to fade
-                if self.beam_time[i] > self.d_time and not self.beam_fading[i] then
+        -- update beam widths
+        for i = 1, #self.beams - 1 do
 
-                    local tween_info = TweenInfo.new(
-                        (self.lifetime - self.d_time) * 0.9, -- time for tween to complete
-                        Enum.EasingStyle.Exponential,
-                        Enum.EasingDirection.Out, -- default direction is out
-                        0, -- repeat count (should not be repeating)
-                        false, -- move back to start after reaching goal?
-                        0 -- delay before tweening, i dont even really know when this would ever be useful
-                    )
-                    local tween_beam_properties = {
-                        ["Width0"] = 0
-                    }
-                    local tween_beam = TweenService:Create(self.beams[i], tween_info, tween_beam_properties)
-                    tween_beam:Play()
-                end
+            -- beam to 0 trail width, only happens once at the time the beam needs to fade
+            if self.beam_time[i] > self.d_time and not self.beam_fading[i] then
 
-                -- continuous update
-                -- update forward width of beam with the rear width of the next one
-                self.beams[i].Width1 = self.beams[i + 1].Width0
-                self.beam_time[i] += dt
+                local tween_info = TweenInfo.new(
+                    (self.lifetime - self.d_time) * 0.9, -- time for tween to complete
+                    Enum.EasingStyle.Sine,
+                    Enum.EasingDirection.Out, -- default direction is out
+                    0, -- repeat count (should not be repeating)
+                    false, -- move back to start after reaching goal?
+                    0 -- delay before tweening, i dont even really know when this would ever be useful
+                )
+                local tween_beam_properties = {
+                    ["Width0"] = 0
+                }
+                local tween_beam = TweenService:Create(self.beams[i], tween_info, tween_beam_properties)
+                tween_beam:Play()
             end
 
+            -- continuous update
+            -- update forward width of beam with the rear width of the next one
+            -- 1 is trail end and i + 1 is towards the emitter
+            -- print(self.beams[#self.beams].Width0, #self.beams, i+1)
+            self.beams[i].Width1 = self.beams[i + 1].Width0
+        end
 
-            
-        self.active_time += dt
-        self.new_beam_interval += dt
+        for i = 1, #self.beams do
+            self.beam_time[i] += dt
+        end
     end
+    self.last_active = self.active
+    self.active_time += dt
+    self.new_beam_interval += dt
+end
+
+function trails:deactivate()
+    self.active = false
+
+    -- final beam to max width when trail is deactivated
+    local tween_info = TweenInfo.new(
+        self.d_time, -- time for tween to complete
+        Enum.EasingStyle.Linear,
+        Enum.EasingDirection.Out, -- default direction is out
+        0, -- repeat count (should not be repeating)
+        false, -- move back to start after reaching goal?
+        0 -- delay before tweening, i dont even really know when this would ever be useful
+    )
+
+    local tween_beam_properties = {
+        ["Width1"] = self.max_trail_width
+    }
+    local tween_beam = TweenService:Create(self.beams[#self.beams], tween_info, tween_beam_properties)
+    tween_beam:Play()
 end
 
 return trails

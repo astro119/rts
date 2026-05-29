@@ -15,8 +15,9 @@ local trails = require(classes.trails)
 local trails_client = {}
 
 local trail_event = remote_service.get("trail_to_client")
+local trail_stop = remote_service.get("trail_stop")
 
-local trails_table = {}
+local trail_data = {}
 
 -- constants --
 
@@ -25,18 +26,22 @@ local trails_table = {}
 -- public functions --
 function trails_client:init()    
     RunService.RenderStepped:Connect(function(dt)
-        for _, trail in ipairs(trails_table) do
+        for _, trail in pairs(trail_data) do
             trail:update(dt)
         end
     end)
 
     -- trail_event.OnClientEvent:Connect(function(id, new_trail_data)
     --     local new_trail = trails.new(new_trail_data)
-    --     trails_table[id] = trails.new(new_trail_data)
+        -- table.insert(trails_table, new_trail)
     -- end) 
-    trail_event.OnClientEvent:Connect(function(new_trail_data)
+    trail_event.OnClientEvent:Connect(function(id, new_trail_data)
         local new_trail = trails.new(new_trail_data)
-        table.insert(trails_table, new_trail)
+        trail_data[id] = new_trail
+    end) 
+
+    trail_stop.OnClientEvent:Connect(function(id)
+        trail_data[id]:deactivate()
     end) 
 end
 

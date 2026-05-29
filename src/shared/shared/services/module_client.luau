@@ -18,8 +18,7 @@ local cam = workspace:WaitForChild("Camera")
 function module:init() 
     cam.CameraType = Enum.CameraType.Custom
     -- cam.CameraSubject = workspace:WaitForChild("missile"):WaitForChild("root")
-    cam.CameraSubject = workspace:WaitForChild("plane"):WaitForChild("root"):
-    WaitForChild("weapons"):WaitForChild("missile"):WaitForChild("root")
+    cam.CameraSubject = workspace:WaitForChild("plane"):WaitForChild("root")--:WaitForChild("weapons"):WaitForChild("missile"):WaitForChild("root")
 end
 
 function module:start() 

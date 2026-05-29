@@ -35,7 +35,7 @@ function aircraft_test:init()
 
     anchor.anchor_descendants(arcrft.root)
     local msl = cfgs.missile
-    for _, v in ipairs({1}) do
+    for _, v in ipairs({1,2,3,4}) do
         arcrft:attach_to_hardpoint(v, msl)
     end
     anchor.unanchor_descendants(arcrft.root)
@@ -52,18 +52,21 @@ function aircraft_test:start()
     local t = 0
     RunService.Heartbeat:Connect(function(dt)
         t += dt
-        if t > 5 then
+        if t > 2 then
             arcrft:deploy_weapon(1)
             arcrft:set_weapon_target(1, target:WaitForChild("root"))
         end
-        if t > 7 then
+        if t > 5 then
             arcrft:deploy_weapon(4)
+            arcrft:set_weapon_target(4, target:WaitForChild("root"))
         end
         if t > 9 then
             arcrft:deploy_weapon(2)
+            arcrft:set_weapon_target(2, target:WaitForChild("root"))
         end
         if t > 11 then
             arcrft:deploy_weapon(3)
+            arcrft:set_weapon_target(3, target:WaitForChild("root"))
         end
     end)
 end
