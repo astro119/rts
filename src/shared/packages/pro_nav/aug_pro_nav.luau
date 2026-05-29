@@ -5,10 +5,17 @@ aug_pro_nav.__index = aug_pro_nav
 -- AssemblyLinearVelocity instead of being internally calculated using
 -- target position and self position
 function aug_pro_nav.new(target_pos: Vector3, target_v: Vector3, self_pos: Vector3, N)
+	local rlos
+	if not rlos then
+		rlos = 0
+	else
+		rlos = target_pos - self_pos
+	end
+	
 	return setmetatable({
 		vt = target_v,
 		N = N,
-		rlos = target_pos - self_pos,
+		rlos = rlos,
 	}, aug_pro_nav)
 end
 
@@ -35,6 +42,12 @@ function aug_pro_nav:update(pt: Vector3, vt: Vector3, ps: Vector3, vs: Vector3, 
 
 	--
 	return a_cmd
+end
+
+function aug_pro_nav:set_new(target_pos: Vector3, target_v: Vector3, self_pos: Vector3, N)
+	self.vt = target_v
+	self.N = N
+	self.rlos = target_pos - self_pos
 end
 
 return aug_pro_nav

@@ -1,10 +1,12 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
 local HttpService = game:GetService("HttpService")
 
 local packages = ReplicatedStorage.packages
 
 local remote_service = require(ReplicatedStorage.shared.services.remote_service)
-local msl_data = require(ReplicatedStorage.data.msl_data)
+
+local msl_data = require(ServerScriptService.data.msl_data)
 
 local trail_to_client = remote_service.get("trail_to_client")
 
@@ -26,6 +28,8 @@ function missile.new(missile_model: Model, parent)
     model:SetAttribute("id", id)
     
     local cfg = model:WaitForChild("cfg")
+
+    -- effects
     local effects = cfg:WaitForChild("effects")
     local trail_cfg
     if effects then
@@ -40,9 +44,13 @@ function missile.new(missile_model: Model, parent)
             resolution = trail_cfg_temp:GetAttribute("resolution")
         }
     end
-    local guidance = cfg:WaitForChild("guidance")
-    if guidance:GetAttribute("type") == "apn" then
-        -- apn.new()
+
+    -- guidance
+    local guidance_cfg = cfg:WaitForChild("guidance")
+    local guidance
+    if guidance_cfg:GetAttribute("type") == "apn" then
+        local N = guidance_cfg:GetAttribute("constant")
+        guidance = apn.new(nil, nil, nil, N)
     end
 
 
@@ -56,7 +64,6 @@ function missile.new(missile_model: Model, parent)
     ang_vel.Parent = root
     ang_vel.Enabled = false
 
-    local guidance
 
     -- not sure if ill actually use linear velocity for final movement
     local lin_vel = Instance.new("LinearVelocity")
@@ -71,7 +78,7 @@ function missile.new(missile_model: Model, parent)
     welds.weld_descendants(root)
     anchor.unanchor_descendants(root)
 
-	return setmetatable({
+	local msl_self = setmetatable({
         id = id,
 
         model = model,
@@ -85,22 +92,72 @@ function missile.new(missile_model: Model, parent)
         guidance = guidance,
         trail_cfg = trail_cfg,
 
+        prev_target = nil,
         target = nil,
+
         mode = nil,
         active = false,
         active_time = 0
     }, missile)
+
+    msl_self:append_to_data(msl_data)
+
+    return msl_self
+end
+
+function missile:append_to_data(table)
+    table[self.id] = self
+end
+
+function missile:remove_from_data(table)
+    table[self.id] = nil
 end
 
 function missile:update(dt)
     if self.active then
-
         -- only just activated the missile
         if self.active_time == 0 then
 
         -- missile after activation
         else
-            
+            -- if new target has been selected, update guidance data
+            -- this is done just in case some erratic movement happens at the start
+            -- when changing targets
+            if self.prev_target ~= self.target then
+                self.guidance:set_new(self.target.Position, 
+                                        self.target.AssemblyLinearVelocity,
+                                        self.root.Position,
+                                        self.guidance.N)
+            end
+
+            -- if a target exists
+            if self.target then
+                local a_cmd = self.guidance:update(self.target.Position,
+                                                    self.target.AssemblyLinearVelocity,
+                                                    self.root.Position,
+                                                    self.root.AssemblyLinearVelocity,
+                                                    dt)
+                local v_s = self.root.AssemblyLinearVelocity
+                local des_v = (v_s + a_cmd).Unit
+                local des_v_local = self.root.CFrame:VectorToObjectSpace(des_v)
+
+                
+                local yaw_error = math.atan2(des_v_local.X, -des_v_local.Z)
+                local pitch_error = math.atan2(des_v_local.Y, -des_v_local.Z)
+
+                local pitch_ang_v = math.sign(pitch_error) * math.rad(50)
+                local yaw_ang_v = -math.sign(yaw_error) * math.rad(50)
+
+                self.ang_vel.AngularVelocity = Vector3.new(pitch_ang_v, yaw_ang_v, 0)
+
+                -- checking whether it impact, if the missile is going fast enough, a simple
+                -- proximity check won't work since the missile will be travelling so far every frame
+                -- MIGHT CHANGE later in favour of also detecting when the missile will impact terrain
+                -- and not just a specified target 
+                
+            end
+
+            self.prev_target = self.target
         end
         
         self.active_time += dt

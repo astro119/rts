@@ -64,6 +64,7 @@ function aircraft.new(model: Model)
         root = root,
 
         hardpoints = hardpoints,
+        station_equipped = {},
         weapons = {},
 
         cog = cog,
@@ -86,19 +87,38 @@ function aircraft:attach_to_hardpoint(station: number, weapon_model: Model)
     -- attach weapon, with correct offset
     weapon.root.CFrame = hardpoint.WorldCFrame * weapon.att.CFrame:Inverse()
     welds.weld(weapon.root, self.root)
+
     self.weapons[station] = weapon
+    self.station_equipped[station] = true
     -- weapon.lin_vel.VectorVelocity = Vector3.new(0,0,-0.5)
 end
 
 function aircraft:deploy_weapon(station: number)
-    local weapon = self.weapons[station]
-    if weapon then
+    if self.station_equipped[station] then
+        local weapon = self.weapons[station]
+
         weapon:activate()
 
         -- temporary maybe??
         local weld_attach = weapon.root:WaitForChild("WeldConstraint")
+
         weld_attach:Destroy()
-        self.weapons[station] = nil
+        self.station_equipped[station] = false
+    end
+end
+
+function aircraft:get_weapon_instance(station: number)
+    local weapon = self.weapons[station]
+    if weapon then
+        return weapon
+    end
+end
+
+function aircraft:set_weapon_target(station: number, target: Model)
+    local weapon = self.weapons[station]
+    if weapon then
+        print(weapon.id.." weapon has a target")
+        weapon.target = target
     end
 end
 

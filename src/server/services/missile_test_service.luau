@@ -33,9 +33,9 @@ function missile_test:start()
     anchor.unanchor_descendants(msl.root)
     -- testing
     msl.ang_vel.AngularVelocity = Vector3.new(0.05, 0.1, 0)
-    RunService.Heartbeat:Connect(function(dt)
-        msl:update(dt)
-    end)
+    -- RunService.Heartbeat:Connect(function(dt)
+    --     msl:update(dt)
+    -- end)
 end
 
 -- main --

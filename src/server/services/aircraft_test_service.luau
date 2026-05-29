@@ -46,19 +46,25 @@ end
 
 function aircraft_test:start()
 
+    local guided1 = false
+    local target = workspace:WaitForChild("target")
+
     local t = 0
     RunService.Heartbeat:Connect(function(dt)
         t += dt
         if t > 5 then
             arcrft:deploy_weapon(1)
         end
-        if t > 6 then
+        if t > 7 then
             arcrft:deploy_weapon(4)
         end
-        if t > 7 then
+        if t > 8 and guided1 == false then
+            arcrft:set_weapon_target(1, target:WaitForChild("root"))
+        end
+        if t > 9 then
             arcrft:deploy_weapon(2)
         end
-        if t > 8 then
+        if t > 11 then
             arcrft:deploy_weapon(3)
         end
     end)

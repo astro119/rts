@@ -1,7 +1,7 @@
-local PIDController = {}
-PIDController.__index = PIDController
+local pid = {}
+pid.__index = pid
 
-function PIDController.new(Kp, Ki, Kd)
+function pid.new(Kp, Ki, Kd)
 	return setmetatable({
 		Kp = Kp,
 		Ki = Ki,
@@ -11,10 +11,10 @@ function PIDController.new(Kp, Ki, Kd)
 		derivative = 0, -- for low-pass filter
 		output = 0,
 		error = 0,
-	}, PIDController)
+	}, pid)
 end
 
-function PIDController:update(error, deltaTime)
+function pid:update(error, deltaTime)
 	local maxIntegral = 20
 	local deadband = 0.1
 	local decayThreshold = 0.05
@@ -51,7 +51,7 @@ function PIDController:update(error, deltaTime)
 	return self.output
 end
 
-function PIDController:printResult()
+function pid:printResult()
 	if self.output ~= nil then
 		print(
 			string.format("%.4f", self.output),
@@ -63,7 +63,7 @@ function PIDController:printResult()
 	end
 end
 
-function PIDController:reset()
+function pid:reset()
 	self.integral = 0
 	self.previouserror = 0
 	self.derivative = 0
@@ -72,4 +72,4 @@ function PIDController:reset()
 	--print("resetting pid")
 end
 
-return PIDController
+return pid
