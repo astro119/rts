@@ -68,9 +68,10 @@ end
 
 function trails:update(dt)
     -- only update if the emitter is visible and replicated to the client
-    if self.emitter then
+    if self.emitter.Parent then
         -- after each interval, create a new attachment and beam, and apply tween
         -- on both the new attachment and beam
+        -- this condition only runs every interval (i.e., essentially "once")
         if self.new_beam_interval > self.resolution then
             local init_pos = self.emitter.WorldPosition
             local new_att
@@ -140,16 +141,23 @@ function trails:update(dt)
             table.insert(self.beam_time, 0)
             table.insert(self.beam_fading, false)
             self.new_beam_interval = 0
+
+        -- continuous updating loop
         else
             -- update attachment positions
             self.atts[#self.atts].Position = self.emitter.WorldPosition
 
+            
+
+        end
+        
+
             -- update beam widths
             for i = 1, #self.beams - 1 do
 
+                -- beam to 0 trail width, only happens once at the time the beam needs to fade
                 if self.beam_time[i] > self.d_time and not self.beam_fading[i] then
 
-                    -- beam to 0 trail width 
                     local tween_info = TweenInfo.new(
                         (self.lifetime - self.d_time) * 0.9, -- time for tween to complete
                         Enum.EasingStyle.Exponential,
@@ -164,10 +172,15 @@ function trails:update(dt)
                     local tween_beam = TweenService:Create(self.beams[i], tween_info, tween_beam_properties)
                     tween_beam:Play()
                 end
+
+                -- continuous update
+                -- update forward width of beam with the rear width of the next one
                 self.beams[i].Width1 = self.beams[i + 1].Width0
                 self.beam_time[i] += dt
             end
-        end
+
+
+            
         self.active_time += dt
         self.new_beam_interval += dt
     end

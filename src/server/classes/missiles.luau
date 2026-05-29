@@ -44,14 +44,19 @@ function missile.new(missile_model: Model, parent)
             resolution = trail_cfg_temp:GetAttribute("resolution")
         }
     end
+    local trail_id = HttpService:GenerateGUID(false)
 
     -- guidance
     local guidance_cfg = cfg:WaitForChild("guidance")
-    local guidance
+    local guidance_law
     if guidance_cfg:GetAttribute("type") == "apn" then
         local N = guidance_cfg:GetAttribute("constant")
-        guidance = apn.new(nil, nil, nil, N)
+        guidance_law = apn.new(nil, nil, nil, N)
     end
+    local guidance = {
+        law = guidance_law,
+        delay_time = guidance_cfg:GetAttribute("delay")
+    }
 
 
     local cog = root:WaitForChild("cog")
@@ -79,6 +84,7 @@ function missile.new(missile_model: Model, parent)
     anchor.unanchor_descendants(root)
 
 	local msl_self = setmetatable({
+
         id = id,
 
         model = model,
@@ -91,13 +97,15 @@ function missile.new(missile_model: Model, parent)
 
         guidance = guidance,
         trail_cfg = trail_cfg,
+        trail_id = trail_id,
 
         prev_target = nil,
         target = nil,
 
         mode = nil,
         active = false,
-        active_time = 0
+        active_time = 0,
+
     }, missile)
 
     msl_self:append_to_data(msl_data)
@@ -113,6 +121,22 @@ function missile:remove_from_data(table)
     table[self.id] = nil
 end
 
+function missile:activate()
+    if not self.active then
+        -- print("activating missile")
+        self.lin_vel.VectorVelocity = Vector3.new(0, 0, -80)
+
+        if self.trail_cfg then
+            -- trail_to_client:FireAllClients(self.trail_id, self.trail_cfg)
+            trail_to_client:FireAllClients(self.trail_cfg)
+        end
+
+        self.ang_vel.Enabled = true
+        self.lin_vel.Enabled = true
+        self.active = true
+    end
+end
+
 function missile:update(dt)
     if self.active then
         -- only just activated the missile
@@ -122,17 +146,18 @@ function missile:update(dt)
         else
             -- if new target has been selected, update guidance data
             -- this is done just in case some erratic movement happens at the start
-            -- when changing targets
+            -- when changing targets, although may NOT be necessary
             if self.prev_target ~= self.target then
-                self.guidance:set_new(self.target.Position, 
+                self.guidance.law:set_new(self.target.Position, 
                                         self.target.AssemblyLinearVelocity,
                                         self.root.Position,
-                                        self.guidance.N)
+                                        self.guidance.law.N)
             end
 
             -- if a target exists
             if self.target then
-                local a_cmd = self.guidance:update(self.target.Position,
+                -- if the weapon has started guiding
+                local a_cmd = self.guidance.law:update(self.target.Position,
                                                     self.target.AssemblyLinearVelocity,
                                                     self.root.Position,
                                                     self.root.AssemblyLinearVelocity,
@@ -155,28 +180,27 @@ function missile:update(dt)
                 -- MIGHT CHANGE later in favour of also detecting when the missile will impact terrain
                 -- and not just a specified target 
                 
+                if self.root.AssemblyLinearVelocity.Magnitude * dt >
+                (self.target.Position - self.root.Position).Magnitude then
+
+                    self.mode = "impact"
+                    self.active = false
+                end
             end
 
             self.prev_target = self.target
         end
         
         self.active_time += dt
+
+    elseif self.mode == "impact" then
+        self:impact()
     end
 end
 
-function missile:activate()
-    if not self.active then
-        -- print("activating missile")
-        self.lin_vel.VectorVelocity = Vector3.new(0, 0, -30)
-
-        if self.trail_cfg then
-            trail_to_client:FireAllClients(self.trail_cfg)
-        end
-
-        self.ang_vel.Enabled = true
-        self.lin_vel.Enabled = true
-        self.active = true
-    end
+function missile:impact()
+    self:remove_from_data(msl_data)
+    self.model:Destroy()
 end
 
 return missile

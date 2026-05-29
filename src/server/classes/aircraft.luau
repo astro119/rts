@@ -117,7 +117,6 @@ end
 function aircraft:set_weapon_target(station: number, target: Model)
     local weapon = self.weapons[station]
     if weapon then
-        print(weapon.id.." weapon has a target")
         weapon.target = target
     end
 end

@@ -30,6 +30,10 @@ function trails_client:init()
         end
     end)
 
+    -- trail_event.OnClientEvent:Connect(function(id, new_trail_data)
+    --     local new_trail = trails.new(new_trail_data)
+    --     trails_table[id] = trails.new(new_trail_data)
+    -- end) 
     trail_event.OnClientEvent:Connect(function(new_trail_data)
         local new_trail = trails.new(new_trail_data)
         table.insert(trails_table, new_trail)

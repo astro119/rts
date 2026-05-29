@@ -29,7 +29,7 @@ function missile_test:start()
     anchor.anchor_descendants(msl.root)
     task.wait(2)
     
-    msl:activate()
+    -- msl:activate()
     anchor.unanchor_descendants(msl.root)
     -- testing
     msl.ang_vel.AngularVelocity = Vector3.new(0.05, 0.1, 0)
