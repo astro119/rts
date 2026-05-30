@@ -1,4 +1,5 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local classes = ServerScriptService.classes
@@ -52,7 +53,7 @@ function aircraft.new(model: Model)
 
     -- testing
     ang_vel.Enabled = true
-    ang_vel.AngularVelocity = Vector3.new(0, 0.2, 0)
+    -- ang_vel.AngularVelocity = Vector3.new(0, 0.2, 0)
     lin_vel.Enabled = true
     lin_vel.VectorVelocity = Vector3.new(0, 0, -20)
 
@@ -90,7 +91,6 @@ function aircraft:attach_to_hardpoint(station: number, weapon_model: Model)
 
     self.weapons[station] = weapon
     self.station_equipped[station] = true
-    -- weapon.lin_vel.VectorVelocity = Vector3.new(0,0,-0.5)
 end
 
 function aircraft:deploy_weapon(station: number)
@@ -102,11 +102,37 @@ function aircraft:deploy_weapon(station: number)
         -- temporary maybe??
         local weld_attach = weapon.root:WaitForChild("WeldConstraint")
 
+        weapon.root.AssemblyLinearVelocity = self.root.AssemblyLinearVelocity
+
+
         weld_attach:Destroy()
         self.station_equipped[station] = false
     end
 end
 
+-- function aircraft:deploy_weapon(station)
+--     local weapon = self.weapons[station]
+
+--     -- 1. capture inertial state
+--     local lin = self.root.AssemblyLinearVelocity
+--     local ang = self.root.AssemblyAngularVelocity
+
+--     -- 2. pre-seed missile physics (CRITICAL)
+--     weapon.root.AssemblyLinearVelocity = lin
+--     weapon.root.AssemblyAngularVelocity = ang
+
+--     -- 3. allow physics engine to register state
+--     RunService.Heartbeat:Wait()
+
+--     -- 4. detach
+--     local weld = weapon.root:FindFirstChildWhichIsA("WeldConstraint")
+--     if weld then weld:Destroy() end
+
+--     -- 5. enable guided forces AFTER separation
+--     weapon:activate()
+
+--     self.station_equipped[station] = false
+-- end
 function aircraft:get_weapon_instance(station: number)
     local weapon = self.weapons[station]
     if weapon then

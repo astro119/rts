@@ -1,4 +1,9 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
+
+local data = ReplicatedStorage.data
+
+local trail_data = require(data.trail_data)
 
 local FADE_POINT = 0.5
 
@@ -8,8 +13,10 @@ local trails = {}
 trails.__index = trails
 
 function trails.new(
+    id,
     trail_cfg
 )
+    local id = id
     local template = trail_cfg.beam
     local emitter = trail_cfg.emitter
     local lifetime = trail_cfg.lifetime
@@ -43,6 +50,8 @@ function trails.new(
     a0.Parent = parent
 
     return setmetatable({
+        id = id,
+
         template = template,
         emitter = emitter,
 
@@ -156,11 +165,12 @@ function trails:update(dt)
         -- update attachment position closest to emitter
         if self.active then
             self.atts[#self.atts].Position = self.emitter.WorldPosition
-        -- final beam, must manually do this
+
+        -- final beam both widths go to 0 (disappearing) - must manually do this, also only happens once
         else
-            if self.beam_time[#self.beams] > self.d_time then
+            if self.beam_time[#self.beams] > self.d_time and not self.beam_fading[#self.beams] then
                 local tween_info = TweenInfo.new(
-                    (self.lifetime - self.d_time) * 0.9, -- time for tween to complete
+                    self.lifetime - self.d_time, -- time for tween to complete
                     Enum.EasingStyle.Sine,
                     Enum.EasingDirection.Out, -- default direction is out
                     0, -- repeat count (should not be repeating)
@@ -173,6 +183,15 @@ function trails:update(dt)
                 }
                 local tween_beam = TweenService:Create(self.beams[#self.beams], tween_info, tween_beam_properties)
                 tween_beam:Play()
+
+                tween_beam.Completed:Connect(function(state)
+                    print("stopping because of "..tostring  (state))
+
+                    if state == Enum.PlaybackState.Completed then
+                        self:stop()
+                    end
+                end)
+                self.beam_fading[#self.beams] = true
             end
         end
 
@@ -183,7 +202,7 @@ function trails:update(dt)
             if self.beam_time[i] > self.d_time and not self.beam_fading[i] then
 
                 local tween_info = TweenInfo.new(
-                    (self.lifetime - self.d_time) * 0.9, -- time for tween to complete
+                    self.lifetime - self.d_time, -- time for tween to complete
                     Enum.EasingStyle.Sine,
                     Enum.EasingDirection.Out, -- default direction is out
                     0, -- repeat count (should not be repeating)
@@ -195,18 +214,22 @@ function trails:update(dt)
                 }
                 local tween_beam = TweenService:Create(self.beams[i], tween_info, tween_beam_properties)
                 tween_beam:Play()
+
+                self.beam_fading[i] = true
             end
 
             -- continuous update
             -- update forward width of beam with the rear width of the next one
-            -- 1 is trail end and i + 1 is towards the emitter
-            -- print(self.beams[#self.beams].Width0, #self.beams, i+1)
             self.beams[i].Width1 = self.beams[i + 1].Width0
         end
 
         for i = 1, #self.beams do
             self.beam_time[i] += dt
         end
+    end
+
+    if not self.active and self.active_time > self.lifetime * 2 then
+        -- self:stop()
     end
     self.last_active = self.active
     self.active_time += dt
@@ -215,6 +238,7 @@ end
 
 function trails:deactivate()
     self.active = false
+    self.active_time = 0
 
     -- final beam to max width when trail is deactivated
     local tween_info = TweenInfo.new(
@@ -231,6 +255,21 @@ function trails:deactivate()
     }
     local tween_beam = TweenService:Create(self.beams[#self.beams], tween_info, tween_beam_properties)
     tween_beam:Play()
+end
+
+function trails:stop()
+    print("destroying trail")
+    for i = 1, #self.beams do
+        self.beams[i]:Destroy()
+        self.atts[i]:Destroy()
+    end
+    self.atts[#self.atts]:Destroy()
+    self:remove_from_data(trail_data)
+    self = nil
+end
+
+function trails:remove_from_data(table)
+    table[self.id] = nil
 end
 
 return trails

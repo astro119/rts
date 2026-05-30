@@ -124,8 +124,8 @@ end
 
 function missile:activate()
     if not self.active then
-        -- print("activating missile")
-        self.lin_vel.VectorVelocity = Vector3.new(0, 0, -80)
+        -- self.lin_vel.VectorVelocity = Vector3.new(0, 0, -80)
+        self.lin_vel.VectorVelocity = Vector3.new(0, 0, -20)
 
         if self.trail_cfg then
             -- trail_to_client:FireAllClients(self.trail_id, self.trail_cfg)
