@@ -8,6 +8,7 @@ local remote_service = require(ReplicatedStorage.shared.services.remote_service)
 
 local msl_data = require(ServerScriptService.data.msl_data)
 
+local missile_to_client = remote_service.get("missile_to_client")
 local trail_to_client = remote_service.get("trail_to_client")
 local trail_stop = remote_service.get("trail_stop")
 
@@ -75,6 +76,7 @@ function missile.new(missile_model: Model, parent)
     local lin_vel = Instance.new("LinearVelocity")
     lin_vel.Attachment0 = cog
     lin_vel.RelativeTo = Enum.ActuatorRelativeTo.Attachment0
+    lin_vel.MaxForce = 100
     lin_vel.Parent = root
     lin_vel.Enabled = false
   
@@ -96,6 +98,7 @@ function missile.new(missile_model: Model, parent)
         ang_vel = ang_vel,
         lin_vel = lin_vel,
 
+        host = nil,
         guidance = guidance,
         trail_cfg = trail_cfg,
         trail_id = trail_id,
@@ -124,8 +127,8 @@ end
 
 function missile:activate()
     if not self.active then
-        -- self.lin_vel.VectorVelocity = Vector3.new(0, 0, -80)
-        self.lin_vel.VectorVelocity = Vector3.new(0, 0, -20)
+        self.lin_vel.VectorVelocity = Vector3.new(0, 0, -80)
+        -- self.lin_vel.VectorVelocity = Vector3.new(0, 0, -40)
 
         if self.trail_cfg then
             -- trail_to_client:FireAllClients(self.trail_id, self.trail_cfg)
@@ -138,8 +141,18 @@ function missile:activate()
     end
 end
 
+function missile:print_kinematics()
+        print(
+            "id: "..self.id..
+            ", velocity is "..self.root.AssemblyLinearVelocity.Magnitude..
+            ", position is "..tostring(self.root.Position)
+        )
+end
+
 function missile:update(dt)
     if self.active then
+        -- self:print_kinematics()
+
         -- only just activated the missile
         if self.active_time == 0 then
 

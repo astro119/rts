@@ -2,6 +2,7 @@ local services = script.Parent.services
 
 local load_exceptions = {
 	module = true, -- add names here
+	player_service = true
 }
 
 local loaded_services_list = {}

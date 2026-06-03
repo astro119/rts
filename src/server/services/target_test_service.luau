@@ -1,5 +1,6 @@
 -- services --
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 -- dependencies --
 local remote_service = require(ReplicatedStorage.shared.services.remote_service)
@@ -45,6 +46,9 @@ function module:start()
     end
 
     -- trail_to_client:FireAllClients(trail_cfg)
+    RunService.Heartbeat:Connect(function(deltaTime)
+        -- print(root.AssemblyLinearVelocity.Magnitude)
+    end)
 end
 
 -- main --

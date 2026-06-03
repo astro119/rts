@@ -23,6 +23,7 @@ function missile_service:start()
 
 	RunService.Heartbeat:Connect(function(dt)
 		for _, msl in pairs(msl_data) do
+            -- print(msl_data)
 			msl:update(dt)
 		end
 	end)

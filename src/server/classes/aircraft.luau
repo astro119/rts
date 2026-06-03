@@ -55,7 +55,7 @@ function aircraft.new(model: Model)
     ang_vel.Enabled = true
     -- ang_vel.AngularVelocity = Vector3.new(0, 0.2, 0)
     lin_vel.Enabled = true
-    lin_vel.VectorVelocity = Vector3.new(0, 0, -20)
+    lin_vel.VectorVelocity = Vector3.new(0, 0, -40)
 
     welds.weld_descendants(root)
     -- anchor.unanchor_descendants(root)
@@ -86,6 +86,7 @@ function aircraft:attach_to_hardpoint(station: number, weapon_model: Model)
     local weapon = missiles.new(weapon_model, weapons)
 
     -- attach weapon, with correct offset
+    weapon.host = self.root
     weapon.root.CFrame = hardpoint.WorldCFrame * weapon.att.CFrame:Inverse()
     welds.weld(weapon.root, self.root)
 
@@ -102,7 +103,7 @@ function aircraft:deploy_weapon(station: number)
         -- temporary maybe??
         local weld_attach = weapon.root:WaitForChild("WeldConstraint")
 
-        weapon.root.AssemblyLinearVelocity = self.root.AssemblyLinearVelocity
+        -- weapon.root.AssemblyLinearVelocity = self.root.AssemblyLinearVelocity
 
 
         weld_attach:Destroy()

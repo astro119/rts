@@ -54,8 +54,9 @@ function aircraft_test:start()
         t += dt
         if t > 2 then
             arcrft:deploy_weapon(1)
-            -- arcrft:set_weapon_target(1, target:WaitForChild("root"))
+            arcrft:set_weapon_target(1, target:WaitForChild("root"))
             arcrft:deploy_weapon(5)
+            arcrft:set_weapon_target(5, target:WaitForChild("root"))
         end
         if t > 5 then
             arcrft:deploy_weapon(4)

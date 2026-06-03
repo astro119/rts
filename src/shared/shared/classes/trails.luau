@@ -170,7 +170,7 @@ function trails:update(dt)
         else
             if self.beam_time[#self.beams] > self.d_time and not self.beam_fading[#self.beams] then
                 local tween_info = TweenInfo.new(
-                    self.lifetime - self.d_time, -- time for tween to complete
+                    (self.lifetime - self.d_time) * 0.9, -- time for tween to complete
                     Enum.EasingStyle.Sine,
                     Enum.EasingDirection.Out, -- default direction is out
                     0, -- repeat count (should not be repeating)
@@ -202,7 +202,7 @@ function trails:update(dt)
             if self.beam_time[i] > self.d_time and not self.beam_fading[i] then
 
                 local tween_info = TweenInfo.new(
-                    self.lifetime - self.d_time, -- time for tween to complete
+                    (self.lifetime - self.d_time) * 0.9, -- time for tween to complete
                     Enum.EasingStyle.Sine,
                     Enum.EasingDirection.Out, -- default direction is out
                     0, -- repeat count (should not be repeating)
